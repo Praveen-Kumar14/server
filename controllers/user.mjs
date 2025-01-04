@@ -13,9 +13,8 @@ export const createUser = async (req, res) => {
     return res.json({
       error: 'This email is already in exits! Enter new email  .',
     });
-  } 
+  }
 
-//  const hashedPassword=await bcrypt.hash(password,10);
   const user = new User({
     email,
     password,
@@ -30,7 +29,7 @@ export const createUser = async (req, res) => {
   res.json({message: 'Account Created SuccessFully'});
 }
 catch(error){
-  return res.json({error:'intrenal server error'});
+  return res.json({error:'internal server error'});
 }
   };
   
@@ -39,9 +38,9 @@ export const userSignIn = async (req, res) => {
   console.log(req.body);
   try{
   const user = await User.findOne({ email }).select('+password');
-  if (!user) {    
+  if (!user) {
     return res.json({ error: 'Email not found'});
-  } 
+  }
 
 
   //const isMatch = await bcrypt.compare(password, user.password);
@@ -54,7 +53,8 @@ export const userSignIn = async (req, res) => {
   }
   if (isMatch) {
     const token = jwt.sign({ userId: user._id }, 'VERYsecret123', { expiresIn: '1d' });
-    res.json({ success: true, user, token ,message:'Login successfully',parentMobileNo:user.parentMobileNo});
+    res.json({ success: true, user, token ,message:'Login successfully',parentMobileNo:user.parentMobileNo,Roll_No:user.Roll_No});
+    console.log(user.parentMobileNo," ",user.Roll_No);
   }else{
   return res.json({error: 'password does not match!'});
   }
@@ -75,235 +75,33 @@ export const createUsers = async (req, res) => {
 export const changePassword = async (req, res) => {
   const {email,Roll_No,password,confirmPassword}=req.body;
   try {
-    const user=await User.findOne({email});
+    const user = await User.findOne({ email }).select('+password');
     if(!user){
-      res.json({error:'Mail is not in use'});
+      res.json({error:'Mail Id is not Exists'});
     }
-    if(user.password===password){
+
+    const isMatch = await user.comparePassword(password);
+
+    if(isMatch){
       res.json({error:'password is already in use '});
     }
     if(user.Roll_No===Roll_No){
       user.password=password;
       user.confirmPassword=confirmPassword;
-    }
-    // const newPassword = await Password.findByEmailAndUpdate(
-    //   { email: req.body.email }, // Assuming email is the field to search for
-    //   { $set: req.body }, // Assuming req.body contains the new password details
-    //   { new: true }
-    // );
-
-    await user.save();
+      console.log(password," ",user.password,Roll_No," ",user.Roll_No);
+      await user.save();
     return res.json({ message: 'Password updated successfully', password });
+    }
+    else{
+      return res.json({error:'Roll No does not match'});
+    }
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-    // const {Roll_No,email,password,confirmPassword}=req.body
-    // try {
-    //   const user=await User.findOne({ Roll_No}).select('+email');
-    //   if(!user){
-    //     return res.json({error:'Roll No does not match'});
-    //   }
-
-    //   const Match=await user.compareEmail(email);
-    //   if(!Match){
-    //     return res.json({error:'email not suite with registered RollNo'})
-    //   }
-
-    //   user.password=password,
-    //   user.confirmPassword=confirmPassword;
-
-    //   await user.save();
-    //   res.json({message:'password updated successfully'})
-    // } catch (error) {
-    //   return res.json({error:'internal server error'});
-    // }
-
 export default {
   createUser,
   userSignIn,
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// const jwt=require('jsonwebtoken');
-// const User=require('../models/user');
-
-// exports.createUser=async(req,res)=>{
-//    const {email,password,confirmPassword,studentPhoneNo,parentPhoneNo,batch}=req.body
-//    const isNewUser=await User.findOne(email);
-//    if(!isNewUser)
-//    return res.json({
-// success:false,
-// message:'this email is already in use,try sign in',
-// });
-
-//     const user= User({ 
-//       email,
-//       password,
-//        confirmPassword,
-//        studentPhoneNo,
-//      parentPhoneNo,
-//      batch})
-//      await user.save();
-//      res.json(user);
-// }
-
-//  exports.userSignIn = async (req,res) => {
-//         const {email,password} = req.body
-//         const user =await User.findOne({email})
-//         if(!user) return res.json({success: false,message: 'user not found,with the given email'})
-       
-//         const isMatch = await user.comparePassword(password)
-//            if(isMatch) return res.json({success : false, message: 'email/password does not match!'});
-   
-//           const  token = jwt.sign({userId:user._id},VERYsecret123,{expiresIn:'1d'});
-   
-//            res.json({success: true,user,token});
-   
-//    };
-
-
-// exports.createUsers = async(req,res)=>{
-//    console.log(req.body);
-//    const data = await User.create(req.body);
-//    res.json({msg:'data received',users:data})
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// const jwt =require('jsonwebtoken');
-// const User=require('../models/user.js');
-// exports.createUser=async(req,res) => {
-// const {email,password,confirmPassword,studentPhoneNo,parentPhoneNo,batch}=req.json(req.body);
-//    const isNewUser=isThisEmailInUse(email);
-// if(!isNewUser)
-//  return res.json({
-// success:false,
-// message:'this email is already in use,try sign-in',
-// });
-//            const user = await User({email ,password, confirmPassword,studentPhoneNo,parentPhoneNo,batch})
-//             await user.save();
-//             res.json(user);   
-//     };
-
-// exports.userSignIn = async (req,res) => {
-//      const {email,password} = req.body
-//      const user =await User.findOne({email})
-//      if(!user) return res.json({success: false,message: 'user not found,with the given email'})
-    
-//      const isMatch = await user.comparePassword(password)
-//         if(isMatch) return res.json({success : false, message: 'email/password does not match!'});
-
-//        const  token = jwt.sign({userId:user._id},VERYsecret123,{expiresIn:'1d'});
-
-//         res.json({success: true,user,token});
-
-// };
